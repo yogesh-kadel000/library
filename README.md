@@ -16,5 +16,6 @@ A comprehensive c++ project for managing library operations, including book inve
 3. Send overdue reminders to members
 4. Generate daily/weekly reports
 
+Note:Built on Itel A60 using Cxxdroid due to resource constraints.
 
 
