@@ -1,0 +1,63 @@
+name: C++ Build and Test
+
+on:
+  push:
+    branches: [ main, Library ]
+  pull_request:
+    branches: [ main, Library ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        compiler: [gcc, clang]
+        exclude:
+          - os: windows-latest
+            compiler: clang
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup compiler (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y g++ clang
+    
+    - name: Setup compiler (macOS)
+      if: runner.os == 'macOS'
+      run: brew install llvm
+    
+    - name: Setup compiler (Windows)
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
+    
+    - name: Compile C++ (Unix-like)
+      if: runner.os != 'Windows'
+      run: |
+        if [ "${{ matrix.compiler }}" = "gcc" ]; then
+          g++ -std=c++17 -Wall -Wextra -o library main_source.cpp
+        else
+          clang++ -std=c++17 -Wall -Wextra -o library main_source.cpp
+        fi
+    
+    - name: Compile C++ (Windows)
+      if: runner.os == 'Windows'
+      run: cl /EHsc /W4 main_source.cpp
+    
+    - name: List compiled files
+      run: ls -la
+      if: runner.os != 'Windows'
+
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Run cppcheck
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cppcheck
+        cppcheck --enable=all --suppress=missingIncludeSystem .
